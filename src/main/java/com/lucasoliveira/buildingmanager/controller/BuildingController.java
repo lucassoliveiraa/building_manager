@@ -29,4 +29,9 @@ public class BuildingController {
     public List<BuildingDTO> findAll() {
         return buildingService.findAll();
     }
+
+    @DeleteMapping("/{id}")
+    public MessageResponseDTO delete(@PathVariable UUID id) {
+        return buildingService.delete(id);
+    }
 }

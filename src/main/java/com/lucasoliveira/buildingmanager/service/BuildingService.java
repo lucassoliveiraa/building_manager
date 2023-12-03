@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -27,10 +26,17 @@ public class BuildingService {
         Building buildingToSave = buildingMapper.toModel(buildingDTO);
         Building saveBuilding = repository.save(buildingToSave);
         return MessageResponseDTO.builder()
-                .message("Building created with ID: " + saveBuilding)
+                .message("Success! Building created with ID: " + saveBuilding)
                 .build();
     }
 
+    public MessageResponseDTO delete(UUID id) {
+        BuildingDTO deletedBuilding = findById(id);
+        repository.deleteById(id);
+        return MessageResponseDTO.builder()
+                .message("Success! Building deleted with ID: " + deletedBuilding)
+                .build();
+    }
     public BuildingDTO findById(UUID id) {
         Optional<Building> optionalBuilding = repository.findById(id);
         if(optionalBuilding.isPresent()) {
@@ -42,7 +48,7 @@ public class BuildingService {
     public List<BuildingDTO> findAll() {
         List<Building> listBuildings = repository.findAll();
         if (!listBuildings.isEmpty()) {
-            return buildingMapper.toDTO();
+            return buildingMapper.toDTO(listBuildings);
         }
         return null;
     }
