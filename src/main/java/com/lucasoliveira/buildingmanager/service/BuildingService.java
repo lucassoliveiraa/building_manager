@@ -6,9 +6,13 @@ import com.lucasoliveira.buildingmanager.entity.Building;
 import com.lucasoliveira.buildingmanager.mapper.IBuildingMapper;
 import com.lucasoliveira.buildingmanager.repository.IBuildingRepository;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,27 +26,30 @@ public class BuildingService {
     private IBuildingRepository repository;
 
     private final IBuildingMapper buildingMapper = IBuildingMapper.INSTANCE;
-    public MessageResponseDTO create(BuildingDTO buildingDTO) {
+    public ResponseEntity<?> create(BuildingDTO buildingDTO) {
         Building buildingToSave = buildingMapper.toModel(buildingDTO);
         Building saveBuilding = repository.save(buildingToSave);
-        return MessageResponseDTO.builder()
-                .message("Success! Building created with ID: " + saveBuilding)
-                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body("Success! Building created: " + saveBuilding);
     }
 
-    public MessageResponseDTO delete(UUID id) {
-        BuildingDTO deletedBuilding = findById(id);
+    public ResponseEntity<?> delete(UUID id) {
+        ResponseEntity<?> deletedBuilding = findById(id);
         repository.deleteById(id);
-        return MessageResponseDTO.builder()
-                .message("Success! Building deleted with ID: " + deletedBuilding)
-                .build();
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body("Success! Building deleted: " + deletedBuilding);
     }
-    public BuildingDTO findById(UUID id) {
-        Optional<Building> optionalBuilding = repository.findById(id);
-        if(optionalBuilding.isPresent()) {
-            return buildingMapper.toDTO(optionalBuilding.get());
-        }
-        return null;
+    public ResponseEntity<?> findById(UUID id) {
+        Building building = repository.findById(id).orElseThrow(()->
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, "Building not found")
+        );
+        BuildingDTO buildingDTO = buildingMapper.toDTO(building);
+        return ResponseEntity
+                .status(HttpStatus.FOUND)
+                .body("Success! Building find: " + building);
     }
 
     public List<BuildingDTO> findAll() {
